@@ -12,9 +12,9 @@ const resolvers = {
         },
         books: async (parent, {username}) => {
             const params = username ? {username} : {};
-            return bookSchema.find(params).sort({createdAt: -1});
+            return BookSchema.find(params).sort({createdAt: -1});
     },
-    book: async (parent, {username}) => {
+    book: async (parent, {bookId}) => {
         return BookSchema.findOne({_id: bookId})
     }
 },
@@ -51,5 +51,6 @@ Mutation: {
         return BookSchema.findOneAndDelete({_id: bookId})
     }
 }
+
 
 module.exports = resolvers;
