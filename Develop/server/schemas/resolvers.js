@@ -1,22 +1,17 @@
+/* eslint-disable no-undef */
 
 const {AuthenticationError} = require('apollo-server-express')
 const {User, BookSchema} = require('../models');
 const {signToken} = require('../utils/auth')
 const resolvers = {
     Query: {
-        users: async () => {
-            return User.find({}).populate('book')
-        },
-        user: async (parent, {username}) => {
-            return User.findOne({user}).populate('user')
-        },
-        books: async (parent, {username}) => {
-            const params = username ? {username} : {};
-            return BookSchema.find(params).sort({createdAt: -1});
-    },
-    book: async (parent, {bookId}) => {
-        return BookSchema.findOne({_id: bookId})
-    }
+
+        me: async (parent, args, context) => {
+            if (context.user) {
+              return User.findOne({ _id: context.user._id }).populate('books');
+            }
+            throw new AuthenticationError('You need to be logged in!');
+          },
 },
 Mutation: {
     newUser: async (parent, {email, password}) => {
@@ -27,7 +22,7 @@ Mutation: {
     login: async (parent,{email, password}) => {
          const user = await User.findOne({email});
          if (!user) {
-            throw new AuthenticationError('no sucj user!....try again?')
+            throw new AuthenticationError('no such user!....try again?')
          }
          const passwordnerify = await user.isCorrectPassword(password);
          if(!passwordnerify){
@@ -45,11 +40,24 @@ Mutation: {
                 { new: true, runValidators: true }
             )
             return updatedUser
-        }
-    },
-    removeBook: async(parent, {bookId}) => {
-        return BookSchema.findOneAndDelete({_id: bookId})
+        },
+    
+    removeBook: async (parent, {bookId}, context) => {  
+      
+            if (context.user) {
+                const updatedUser = await User.findOneAndUpdate(
+                  { _id: context.user._id },
+                  { $pull: { savedBooks: { bookId: bookId } } },
+                  { new: true }
+                )
+                return updatedUser
+              }
+              
+
+        
+          
     }
+  },
 }
 
 

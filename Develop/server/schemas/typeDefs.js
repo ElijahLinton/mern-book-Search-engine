@@ -1,29 +1,48 @@
-const {gql} = require('apollo-server-express');
+const { gql } = require("apollo-server-express");
 
 const typeDefs = gql`
 type Book {
-
-    authors: string!
-    description: string!
-    bookid: string!
-    image: string!
-    link: string!
-    title:string!
+    _id: ID
+    authors: String!
+    description: String!
+    bookid: String!
+    image: String!
+    link: String!
+    title: String!
 } 
 
-type User {
-    username: string!
-    email string!
-    password: string!
-    savedBooks: [bookSchema]!
+type Query {
+   me: User
 }
+
+type User {
+  _id: ID
+    username: String!
+    email: String!
+    password: String!
+    savedBooks: [Book]!
+}
+input savedBookValue {
+  authors: [String]
+  description: String
+  bookId: String
+  image: String
+  link: String
+  title: String
+}
+type Auth {
+    token: ID!
+    user: User
+}
+
 
   type Mutation {
     newUser(username: String!, email: String!, password: String!): Auth
     login(email: String!, password: String!): Auth
-    addBook(thoughtText: String!): Book
-    removeBook(thoughtId: ID!): Book
+    addBook(book: savedBookValue!): User
+    removeBook(bookId: String!): User
 
   }
-`
-module.exports = typeDefs
+`;
+
+module.exports = typeDefs;
